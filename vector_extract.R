@@ -1,6 +1,7 @@
-admin0 <- readRDS('Z:/Eradication/rds/admin0.RDS')
+admin0 <- readRDS('M:/Eradication/rds/admin0.RDS')
 admin0 <- admin0[which(admin0$ISO=='SEN'), ]
-sf::st_geometry(admin0)
+sf::st_as_sf(admin0)
+sf::st_crs(admin0) # EPSG:4326
 
 props <- rep(NA, 3)
 species <- c('arabiensis', 'funestus', 'gambiae_ss')

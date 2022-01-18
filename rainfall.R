@@ -17,7 +17,7 @@ reticulate::use_python('C:/Users/htopazia/Anaconda3/python.exe', required=T)
 ee_Initialize(user='htopazian@gmail.com', drive=T) 
 
 # specify time-range
-dhs <- readRDS('./data/dhs_full.rds')
+dhs <- readRDS('./data/dhs_full.rds') # change filepath to location on local computer or run file DHS_prev.R
 table(dhs$hv007) # surveys are from 1992 to 2019
 
 # when run from 1992 to 2019 it times out. Take yearly estimates

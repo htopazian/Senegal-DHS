@@ -17,7 +17,7 @@ reticulate::use_python('C:/Users/htopazia/Anaconda3/python.exe', required=T)
 ee_Initialize(user='htopazian@gmail.com', drive=T) 
 
 # specify time-range
-dhs <- readRDS('./data/dhs_full.rds')
+dhs <- readRDS('./data/dhs_full.rds') # change filepath to location on local computer or run file DHS_prev.R
 table(dhs$hv007) # surveys are from 1992 to 2019
 
 # when run from 1992 to 2019 it times out. Take yearly estimates
@@ -45,34 +45,33 @@ extract_rain <- function(start_date, end_date){
 
 # extract
 rainfall <- map2_dfr(start_date, end_date, extract_rain)
+raw_rainfall <- do.call('rbind', rainfall$rainfall_data)
+rainfall_fit <- fourier_model(
+  raw_rainfall$rainfall,
+  seq(nrow(raw_rainfall)) %% 365 / 365
+)
 
-# pull out fit profile
-out <- map_dfr(seq(1, nrow(rainfall), 1), function(x){do.call(data.frame, rainfall[x,]$profile)})
-out$year <- ceiling(1:nrow(out)/365)
+t <- seq(nrow(raw_rainfall)) / 365
+profile <- umbrella:::fourier_predict(rainfall_fit, t)
 
-# pull out rainfall data
-out2 <- map_dfr(seq(1, nrow(rainfall), 1), function(x){do.call(data.frame, rainfall[x,]$rainfall_data)})
-out2$year <- as.numeric(substr(out2$date, 1, 4))
-out2$t <- sequence(rle(out2$year)$lengths)
+out <- data.frame(
+  x=c(t, t),
+  y=c(raw_rainfall$rainfall, profile$y),
+  label=rep(c('rainfall', 'fit'), each=length(t))
+)
 
 # plot
 library(ggplot2)
 ggplot() + 
-  geom_line(data = out2, aes(x=t, y=rainfall), col = 'red', alpha = 0.3) +
-  geom_line(data = out, aes(x=t*365, y=y, group=year), col='blue', alpha = 0.3) + 
-  labs(x='days', y='rainfall (mm)', 
-       title='daily rainfall (red) and fit (blue), by year, 1992-2019') + 
+  geom_line(data = out, aes(x=x, y=y, color=label, group=label, alpha=.3)) +
+  labs(x='t', y='rainfall (mm)', 
+       title='daily rainfall and fit between 1992-2019') + 
   theme_classic()
 
 ggsave('./results/rainfall.pdf', width=15, height=10, units="cm")
 
-
-# get coefficients
-coeff <- map_dfr(seq(1, nrow(rainfall), 1), function(x){do.call(data.frame, rainfall[x,]$coefficients)})
-coeff$year <- seq(1992,2019,1)
-
 # print coefficients
-write.csv(coeff, './results/rain_coeff.csv', row.names=F)
+write.csv(rainfall_fit$coefficients, './results/rain_coeff.csv', row.names=F)
 
 
 # now repeat for each admin1 unit

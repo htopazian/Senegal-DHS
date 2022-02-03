@@ -13,7 +13,7 @@ library(purrr)
 # DHS DOWNLOAD -----------------
 # log-in
 rdhs::set_rdhs_config(
-  email = "***REMOVED***",
+  email = "h.topazian@imperial.ac.uk",
   project = 'Calibration of an Individual-based model of Malaria transmission',
   config_path = "rdhs.json",
   global = FALSE)
